@@ -1,0 +1,35 @@
+image: golang:latest
+
+services:
+  - mongo
+
+stages:
+  - build
+  - test
+
+variables:
+  MONGO_URI: mongodb://127.0.0.1
+  REPOSITORY_NAME: server
+  HOSTNAME: http://localhost:8080
+
+
+before_script:
+  - mkdir -p $GOPATH/src/$(dirname $REPOSITORY_NAME)
+  - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPOSITORY_NAME
+  - cd $GOPATH/src/$REPOSITORY_NAME
+
+build:
+    stage: build
+    script:
+      - go get
+      - go get "github.com/sacOO7/gowebsocket"
+      - go fmt $(go list ./... | grep -v /vendor/)
+      - go doc cmd/vet
+
+
+test:
+  stage: test
+  script:
+      - ./REPOSITORY_NAME &
+      - cd test && go test -v
+      - go clean -testcache
